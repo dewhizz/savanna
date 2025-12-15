@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Savannah Spice Admin</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="css/bootstrap/css/bootstrap.min.css">
+    <!-- Font Awesome (Local only) -->
+    <link rel="stylesheet" href="css/fontawesome/css/font-awesome.min.css">
+
+
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --color-primary: #0088cc;
+            --color-dark: #1d2127;
+            --color-dark-lighter: #2e353e;
+            --color-bg: #ecedf0;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            font-family: "Open Sans", Arial, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--color-dark);
+            color: #777;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            height: 60px;
+            background-color: #171a1f;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .sidebar-menu li a {
+            display: block;
+            padding: 12px 25px;
+            color: #abb4be;
+            text-decoration: none;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            background-color: var(--color-dark-lighter);
+            color: #fff;
+            border-left-color: var(--color-primary);
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s;
+        }
+
+        /* --- Header --- */
+        .header {
+            height: 60px;
+            background-color: #fff;
+            border-bottom: 1px solid #e9e9e9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.03);
+        }
+
+        .user-box {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .user-box img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        /* --- Wrapper --- */
+        .page-wrapper {
+            padding: 30px;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 300;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        /* --- Cards --- */
+        .card {
+            background: #fff;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid #f1f1f1;
+            padding: 18px 25px;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* --- Table --- */
+        .table thead th {
+            border-bottom: 1px solid #e9e9e9;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .table td {
+            vertical-align: middle;
+            color: #777;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #fcfcfc;
+        }
+
+        /* --- Badges --- */
+        .badge {
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge-pending {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .badge-confirmed {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .badge-cancelled {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        /* --- Sidebar Toggling --- */
+        body.sidebar-collapsed .sidebar {
+            margin-left: -250px;
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 0;
+        }
+
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 15px;
+        }
+
+        .toggle-sidebar:hover {
+            color: #0088cc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            SAVANNAH SPICE
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="active" id="nav-dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="#" id="nav-bookings"><i class="fas fa-calendar-alt"></i> Reservations</a></li>
+            <li><a href="#" id="nav-menu"><i class="fas fa-utensils"></i> Menu Manager</a></li>
+            <li><a href="#" id="nav-blog"><i class="fas fa-pen-nib"></i> Blog Manager</a></li>
+            <li><a href="#" id="nav-ads"><i class="fas fa-ad"></i> Ad Manager</a></li>
+            <li><a href="#" id="nav-settings"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="toggle-sidebar" id="sidebar-toggle"><i class="fas fa-bars"></i></button>
+            </div>
+            <div class="header-right">
+                <div class="user-box">
+                    <span class="text-right d-none d-sm-block">
+                        <small class="d-block text-muted">Admin</small>
+                        <strong>John Doe</strong>
+                    </span>
+                    <img src="images/team/member-3.jpg" alt="Admin" onerror="this.src='https://via.placeholder.com/40'">
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="page-wrapper">
+
+            <!-- DASHBOARD SECTION -->
+            <div id="section-dashboard" class="admin-section">
+                <h2 class="page-title">Dashboard</h2>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <section class="card">
+                            <header class="card-header">
+                                <h2 class="card-title">Recent Reservations</h2>
+                            </header>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Guest</th>
+                                                <th>Date & Time</th>
+                                                <th>Guests</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="bookings-table-body">
+                                            <!-- Content loaded via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MENU SECTION -->
+            <div id="section-menu" class="admin-section" style="display:none;">
+                <h2 class="page-title">Menu Management</h2>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <section class="card">
+                            <header class="card-header d-flex justify-content-between align-items-center">
+                                <h2 class="card-title">Menu Items</h2>
+                                <button class="btn btn-primary btn-sm" onclick="showAddMenuModal()"><i
+                                        class="fas fa-plus"></i> Add Item</button>
+                            </header>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Image</th>
+                                                <th>Name</th>
+                                                <th>Category</th>
+                                                <th>Price</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="menu-table-body">
+                                            <!-- Loaded via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOG SECTION -->
+            <div id="section-blog" class="admin-section" style="display:none;">
+                <h2 class="page-title">Blog Management</h2>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <section class="card">
+                            <header class="card-header d-flex justify-content-between align-items-center">
+                                <h2 class="card-title">Blog Posts</h2>
+                                <button class="btn btn-primary btn-sm" onclick="showAddBlogModal()"><i
+                                        class="fas fa-plus"></i> New Post</button>
+                            </header>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Author</th>
+                                                <th>Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="blog-table-body">
+                                            <!-- Loaded via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADS SECTION -->
+            <div id="section-ads" class="admin-section" style="display:none;">
+                <h2 class="page-title">Ad Management</h2>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <section class="card">
+                            <header class="card-header d-flex justify-content-between align-items-center">
+                                <h2 class="card-title">Active Ads</h2>
+                                <button class="btn btn-primary btn-sm" onclick="showAddAdModal()"><i
+                                        class="fas fa-plus"></i> Create Ad</button>
+                            </header>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Position</th>
+                                                <th>Views/Clicks</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ads-table-body">
+                                            <!-- Loaded via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MENU MODAL -->
+    <div class="modal fade" id="menuModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Menu Item</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="menu-form">
+                        <input type="hidden" id="menu-id">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" class="form-control" id="menu-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select class="form-control" id="menu-category">
+                                <option>Starters</option>
+                                <option>Mains</option>
+                                <option>Desserts</option>
+                                <option>Drinks</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Price ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="menu-price" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="form-control" id="menu-description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Image URL</label>
+                            <input type="text" class="form-control" id="menu-image">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveMenu()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BLOG MODAL -->
+    <div class="modal fade" id="blogModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Blog Post</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="blog-form">
+                        <input type="hidden" id="blog-id">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control" id="blog-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Author</label>
+                            <input type="text" class="form-control" id="blog-author" value="Admin">
+                        </div>
+                        <div class="form-group">
+                            <label>Content</label>
+                            <textarea class="form-control" id="blog-content" rows="5"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Image URL</label>
+                            <input type="text" class="form-control" id="blog-image">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveBlog()">Publish</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADS MODAL -->
+    <div class="modal fade" id="adModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Advertisement</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="ad-form">
+                        <input type="hidden" id="ad-id">
+                        <div class="form-group">
+                            <label>Title (Internal)</label>
+                            <input type="text" class="form-control" id="ad-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Position</label>
+                            <select class="form-control" id="ad-position">
+                                <option value="sidebar">Sidebar</option>
+                                <option value="banner-top">Top Banner</option>
+                                <option value="banner-bottom">Bottom Banner</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Image URL</label>
+                            <input type="text" class="form-control" id="ad-image" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Link</label>
+                            <input type="text" class="form-control" id="ad-link" placeholder="http://...">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAd()">Save Ad</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/jquery.js"></script>
+    <script src="css/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        // Inline JS or link to js/admin.js associated with this structure
+        // Use jQuery(...) because 'noConflict' is active in jquery.js
+        jQuery(document).ready(function ($) {
+            console.log("Dashboard ready. jQuery loaded safely.");
+
+            // --- Navigation Logic ---
+            $('.sidebar-menu a').on('click', function (e) {
+                e.preventDefault();
+
+                // Active State
+                $('.sidebar-menu a').removeClass('active');
+                $(this).addClass('active');
+
+                // Section Switching
+                const id = $(this).attr('id');
+                $('.admin-section').hide();
+
+                if (id === 'nav-dashboard') {
+                    $('#section-dashboard').show();
+                    loadBookings();
+                } else if (id === 'nav-menu') {
+                    $('#section-menu').show();
+                    loadMenuItems();
+                } else if (id === 'nav-blog') {
+                    $('#section-blog').show();
+                    loadBlogPosts();
+                } else if (id === 'nav-ads') {
+                    $('#section-ads').show();
+                    loadAds();
+                } else if (id === 'nav-bookings') {
+                    // Just scroll to dashboard for now
+                    $('#section-dashboard').show();
+                    $('#nav-dashboard').addClass('active');
+                    $(this).removeClass('active');
+                    loadBookings();
+                }
+            });
+
+            // Sidebar Toggle Logic
+            $('#sidebar-toggle').on('click', function () {
+                $('body').toggleClass('sidebar-collapsed');
+            });
+
+            // Initial Load
+            loadBookings();
+
+
+            // --- BOOKINGS (Existing) ---
+            function loadBookings() {
+                $('#bookings-table-body').html('<tr><td colspan="6" class="text-center">Loading bookings...</td></tr>');
+                $.ajax({
+                    url: 'http://localhost:3000/api/bookings',
+                    method: 'GET',
+                    timeout: 5000,
+                    success: function (response) {
+                        const bookings = response.bookings;
+                        const tableBody = $('#bookings-table-body');
+                        tableBody.empty();
+
+                        if (bookings.length === 0) {
+                            tableBody.append('<tr><td colspan="6" class="text-center">No bookings found</td></tr>');
+                            return;
+                        }
+
+                        bookings.forEach(booking => {
+                            let actionButtons = '';
+                            if (booking.status === 'pending') {
+                                actionButtons = `
+                                    <button class="btn btn-success btn-sm btn-approve" data-id="${booking.id}" title="Approve"><i class="fas fa-check"></i></button>
+                                    <button class="btn btn-danger btn-sm btn-decline" data-id="${booking.id}" title="Decline"><i class="fas fa-times"></i></button>
+                                `;
+                            } else {
+                                actionButtons = '<span class="text-muted">-</span>';
+                            }
+                            const badgeClass = 'badge-' + booking.status;
+                            tableBody.append(`
+                                <tr>
+                                    <td>#${booking.id}</td>
+                                    <td><strong>${booking.name}</strong><br><small>${booking.phone}</small></td>
+                                    <td>${booking.date} at ${booking.time}</td>
+                                    <td>${booking.guests}</td>
+                                    <td><span class="badge ${badgeClass}">${booking.status.toUpperCase()}</span></td>
+                                    <td>${actionButtons}</td>
+                                </tr>
+                            `);
+                        });
+                    },
+                    error: function (xhr) {
+                        $('#bookings-table-body').html(`<tr><td colspan="6" class="text-center text-danger">Error loading bookings. IS SERVER RUNNING?</td></tr>`);
+                    }
+                });
+            }
+
+            $(document).on('click', '.btn-approve', function () { updateStatus($(this).data('id'), 'confirmed'); });
+            $(document).on('click', '.btn-decline', function () { updateStatus($(this).data('id'), 'cancelled'); });
+
+            function updateStatus(id, newStatus) {
+                if (!confirm(`Mark as ${newStatus}?`)) return;
+                $.ajax({
+                    url: `http://localhost:3000/api/bookings/${id}/status`,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ status: newStatus }),
+                    success: function () { loadBookings(); },
+                    error: function () { alert('Error updating status.'); }
+                });
+            }
+
+
+            // --- MENU MANAGEMENT ---
+            window.showAddMenuModal = function () {
+                $('#menu-form')[0].reset();
+                $('#menu-id').val(''); // Clear ID => Create mode
+                $('#menuModal').modal('show');
+            }
+
+            window.saveMenu = function () {
+                const id = $('#menu-id').val();
+                const data = {
+                    name: $('#menu-name').val(),
+                    category: $('#menu-category').val(),
+                    price: $('#menu-price').val(),
+                    description: $('#menu-description').val(),
+                    image_url: $('#menu-image').val()
+                };
+
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `http://localhost:3000/api/menu/${id}` : 'http://localhost:3000/api/menu';
+
+                $.ajax({
+                    url: url, method: method, contentType: 'application/json', data: JSON.stringify(data),
+                    success: function () { $('#menuModal').modal('hide'); loadMenuItems(); },
+                    error: function (e) { alert("Error saving menu item: " + e.statusText); }
+                });
+            }
+
+            window.deleteMenu = function (id) {
+                if (!confirm("Delete this menu item?")) return;
+                $.ajax({
+                    url: `http://localhost:3000/api/menu/${id}`, method: 'DELETE',
+                    success: function () { loadMenuItems(); },
+                    error: function () { alert("Error deleting item."); }
+                });
+            }
+
+            window.loadMenuItems = function () {
+                $('#menu-table-body').html('<tr><td colspan="5">Loading...</td></tr>');
+                $.get('http://localhost:3000/api/menu', function (res) {
+                    const rows = res.menu.map(item => `
+                        <tr>
+                            <td><img src="${item.image_url || 'https://via.placeholder.com/40'}" height="40"></td>
+                            <td>${item.name}</td>
+                            <td>${item.category}</td>
+                            <td>$${item.price}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteMenu(${item.id})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    $('#menu-table-body').html(rows);
+                });
+            }
+
+
+            // --- BLOG MANAGEMENT ---
+            window.showAddBlogModal = function () {
+                $('#blog-form')[0].reset();
+                $('#blog-id').val('');
+                $('#blogModal').modal('show');
+            }
+
+            window.saveBlog = function () {
+                const id = $('#blog-id').val();
+                const data = {
+                    title: $('#blog-title').val(),
+                    author: $('#blog-author').val(),
+                    content: $('#blog-content').val(),
+                    image_url: $('#blog-image').val()
+                };
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `http://localhost:3000/api/blogs/${id}` : 'http://localhost:3000/api/blogs';
+
+                $.ajax({
+                    url: url, method: method, contentType: 'application/json', data: JSON.stringify(data),
+                    success: function () { $('#blogModal').modal('hide'); loadBlogPosts(); },
+                    error: function () { alert("Error saving post."); }
+                });
+            }
+
+            window.deleteBlog = function (id) {
+                if (!confirm("Delete this post?")) return;
+                $.ajax({
+                    url: `http://localhost:3000/api/blogs/${id}`, method: 'DELETE',
+                    success: function () { loadBlogPosts(); },
+                    error: function () { alert("Error deleting post."); }
+                });
+            }
+
+            window.loadBlogPosts = function () {
+                $('#blog-table-body').html('<tr><td colspan="4">Loading...</td></tr>');
+                $.get('http://localhost:3000/api/blogs', function (res) {
+                    const rows = res.blogs.map(post => `
+                        <tr>
+                            <td>${post.title}</td>
+                            <td>${post.author}</td>
+                            <td>${new Date(post.created_at).toLocaleDateString()}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteBlog(${post.id})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    $('#blog-table-body').html(rows);
+                });
+            }
+
+            // --- ADS MANAGEMENT ---
+            window.showAddAdModal = function () {
+                $('#ad-form')[0].reset();
+                $('#ad-id').val('');
+                $('#adModal').modal('show');
+            }
+
+            window.saveAd = function () {
+                const id = $('#ad-id').val();
+                const data = {
+                    title: $('#ad-title').val(),
+                    position: $('#ad-position').val(),
+                    image_url: $('#ad-image').val(),
+                    link_url: $('#ad-link').val()
+                };
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `http://localhost:3000/api/ads/${id}` : 'http://localhost:3000/api/ads';
+
+                $.ajax({
+                    url: url, method: method, contentType: 'application/json', data: JSON.stringify(data),
+                    success: function () { $('#adModal').modal('hide'); loadAds(); },
+                    error: function () { alert("Error saving ad."); }
+                });
+            }
+
+            window.deleteAd = function (id) {
+                if (!confirm("Delete this ad?")) return;
+                $.ajax({
+                    url: `http://localhost:3000/api/ads/${id}`, method: 'DELETE',
+                    success: function () { loadAds(); },
+                    error: function () { alert("Error deleting ad."); }
+                });
+            }
+
+            window.loadAds = function () {
+                $('#ads-table-body').html('<tr><td colspan="4">Loading...</td></tr>');
+                $.get('http://localhost:3000/api/ads', function (res) {
+                    const rows = res.ads.map(ad => `
+                        <tr>
+                            <td>${ad.title}</td>
+                            <td>${ad.position}</td>
+                            <td>-</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteAd(${ad.id})"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    $('#ads-table-body').html(rows);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

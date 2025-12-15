@@ -1,0 +1,17 @@
+{
+  "name": "savannah-spice",
+  "version": "1.0.0",
+  "description": "Savannah Spice Restaurant Website",
+  "scripts": {
+    "start": "node server.js",
+    "start:static": "npx http-server -c-1 -o"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "http-server": "^14.1.1",
+    "nodemailer": "^7.0.11",
+    "sqlite3": "^5.1.7"
+  }
+}
