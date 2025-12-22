@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -240,10 +240,13 @@
                 <div class="user-box">
                     <span class="text-right d-none d-sm-block">
                         <small class="d-block text-muted">Admin</small>
-                        <strong>John Doe</strong>
+                        <strong id="admin-username">Loading...</strong>
                     </span>
-                    <img src="images/team/member-3.jpg" alt="Admin" onerror="this.src='https://via.placeholder.com/40'">
+                    <img src="images/team/member-3.jpg" alt="Admin" onerror="this.src='images/admin-placeholder.png'">
                 </div>
+                <button class="btn btn-sm btn-outline-danger ml-3" id="logout-btn" style="margin-left: 15px;">
+                    <i class="fa fa-sign-out"></i> Logout
+                </button>
             </div>
         </header>
 
@@ -518,6 +521,71 @@
         // Use jQuery(...) because 'noConflict' is active in jquery.js
         jQuery(document).ready(function ($) {
             console.log("Dashboard ready. jQuery loaded safely.");
+
+            // --- AUTHENTICATION CHECK ---
+            let activityTimeout;
+            const TIMEOUT_DURATION = parseInt('<?php echo getenv("SESSION_TIMEOUT") ?: "7200000"; ?>') || 7200000; // 2 hours
+
+            // Check if user is authenticated
+            $.ajax({
+                url: '/api/auth/check',
+                method: 'GET',
+                success: function (response) {
+                    if (!response.authenticated) {
+                        // Not logged in, redirect to login
+                        window.location.href = '/admin-login.html';
+                    } else {
+                        // Update username in header
+                        $('#admin-username').text(response.username);
+                        // Start activity tracking
+                        startActivityTracking();
+                    }
+                },
+                error: function () {
+                    // Error checking auth, redirect to login
+                    window.location.href = '/admin-login.html';
+                }
+            });
+
+            // Activity tracking for auto-logout
+            function startActivityTracking() {
+                resetActivityTimer();
+
+                // Track user activity
+                $(document).on('mousemove keypress click scroll', function () {
+                    resetActivityTimer();
+                });
+            }
+
+            function resetActivityTimer() {
+                clearTimeout(activityTimeout);
+                activityTimeout = setTimeout(function () {
+                    // Auto logout after inactivity
+                    alert('Session expired due to inactivity. Please login again.');
+                    logout();
+                }, TIMEOUT_DURATION);
+            }
+
+            // Logout functionality
+            $('#logout-btn').on('click', function () {
+                if (confirm('Are you sure you want to logout?')) {
+                    logout();
+                }
+            });
+
+            function logout() {
+                $.ajax({
+                    url: '/api/auth/logout',
+                    method: 'POST',
+                    success: function () {
+                        window.location.href = '/admin-login.html';
+                    },
+                    error: function () {
+                        // Force redirect even if logout fails
+                        window.location.href = '/admin-login.html';
+                    }
+                });
+            }
 
             // --- Navigation Logic ---
             $('.sidebar-menu a').on('click', function (e) {

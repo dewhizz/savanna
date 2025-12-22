@@ -7,9 +7,13 @@
     "start:static": "npx http-server -c-1 -o"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.1",
+    "connect-sqlite3": "^0.9.16",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "express-session": "^1.18.2",
     "http-server": "^14.1.1",
     "nodemailer": "^7.0.11",
     "sqlite3": "^5.1.7"

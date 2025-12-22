@@ -1,7 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
+const bcrypt = require('bcryptjs');
 const db = require('./server/database');
 
 const app = express();
@@ -12,13 +16,105 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Session Configuration
+app.use(session({
+    store: new SQLiteStore({
+        db: 'sessions.db',
+        dir: './server'
+    }),
+    secret: process.env.SESSION_SECRET || 'savannah-spice-default-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: parseInt(process.env.SESSION_TIMEOUT) || 7200000, // 2 hours default
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production' // HTTPS only in production
+    }
+}));
+
 // Serve Static Files (Frontend)
 app.use(express.static(path.join(__dirname, '/')));
 
 // API Routes
 
 // Reference for Status: 
-// 200 OK, 201 Created, 400 Bad Request, 500 Server Error
+// 200 OK, 201 Created, 400 Bad Request, 401 Unauthorized, 500 Server Error
+
+// --- Authentication Middleware ---
+function requireAuth(req, res, next) {
+    if (req.session && req.session.userId) {
+        return next();
+    }
+    return res.status(401).json({ error: 'Unauthorized. Please login.' });
+}
+
+// --- Authentication API ---
+
+// Login
+app.post('/api/auth/login', (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+    }
+
+    db.get('SELECT * FROM admin_users WHERE username = ?', [username], (err, user) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Server error' });
+        }
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        bcrypt.compare(password, user.password_hash, (err, isMatch) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+
+            if (!isMatch) {
+                return res.status(401).json({ error: 'Invalid credentials' });
+            }
+
+            // Set session
+            req.session.userId = user.id;
+            req.session.username = user.username;
+
+            // Update last login
+            db.run('UPDATE admin_users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+
+            res.json({
+                success: true,
+                message: 'Login successful',
+                username: user.username
+            });
+        });
+    });
+});
+
+// Logout
+app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Logout failed' });
+        }
+        res.json({ success: true, message: 'Logged out successfully' });
+    });
+});
+
+// Check authentication status
+app.get('/api/auth/check', (req, res) => {
+    if (req.session && req.session.userId) {
+        res.json({
+            authenticated: true,
+            username: req.session.username
+        });
+    } else {
+        res.json({ authenticated: false });
+    }
+});
 
 // --- Bookings API ---
 
@@ -69,8 +165,8 @@ app.post('/api/bookings', (req, res) => {
     });
 });
 
-// Update booking status (Approve/Decline)
-app.put('/api/bookings/:id/status', (req, res) => {
+// Update booking status (Approve/Decline) - ADMIN ONLY
+app.put('/api/bookings/:id/status', requireAuth, (req, res) => {
     const { status } = req.body; // 'confirmed' or 'cancelled'
     const { id } = req.params;
 
@@ -126,8 +222,8 @@ app.put('/api/bookings/:id/status', (req, res) => {
     });
 });
 
-// Get all bookings (for Admin Dashboard - to be built)
-app.get('/api/bookings', (req, res) => {
+// Get all bookings - ADMIN ONLY
+app.get('/api/bookings', requireAuth, (req, res) => {
     const sql = "SELECT * FROM bookings ORDER BY created_at DESC";
     db.all(sql, [], (err, rows) => {
         if (err) {
@@ -151,8 +247,8 @@ app.get('/api/menu', (req, res) => {
     });
 });
 
-// Add a menu item (for Admin)
-app.post('/api/menu', (req, res) => {
+// Add a menu item - ADMIN ONLY
+app.post('/api/menu', requireAuth, (req, res) => {
     const { category, name, description, price, image_url } = req.body;
     const sql = `INSERT INTO menu_items (category, name, description, price, image_url) VALUES (?, ?, ?, ?, ?)`;
     const params = [category, name, description, price, image_url];
@@ -165,8 +261,8 @@ app.post('/api/menu', (req, res) => {
     });
 });
 
-// Update a menu item
-app.put('/api/menu/:id', (req, res) => {
+// Update a menu item - ADMIN ONLY
+app.put('/api/menu/:id', requireAuth, (req, res) => {
     const { category, name, description, price, image_url, is_available } = req.body;
     const { id } = req.params;
 
@@ -191,8 +287,8 @@ app.put('/api/menu/:id', (req, res) => {
     });
 });
 
-// Delete a menu item
-app.delete('/api/menu/:id', (req, res) => {
+// Delete a menu item - ADMIN ONLY
+app.delete('/api/menu/:id', requireAuth, (req, res) => {
     const { id } = req.params;
     db.run("DELETE FROM menu_items WHERE id = ?", [id], function (err) {
         if (err) return res.status(500).json({ error: err.message });
@@ -211,7 +307,7 @@ app.get('/api/blogs', (req, res) => {
     });
 });
 
-app.post('/api/blogs', (req, res) => {
+app.post('/api/blogs', requireAuth, (req, res) => {
     const { title, content, image_url, author } = req.body;
     const sql = `INSERT INTO blog_posts (title, content, image_url, author) VALUES (?, ?, ?, ?)`;
     db.run(sql, [title, content, image_url, author], function (err) {
@@ -220,7 +316,7 @@ app.post('/api/blogs', (req, res) => {
     });
 });
 
-app.put('/api/blogs/:id', (req, res) => {
+app.put('/api/blogs/:id', requireAuth, (req, res) => {
     const { title, content, image_url, author } = req.body;
     const { id } = req.params;
     const sql = `UPDATE blog_posts SET title = ?, content = ?, image_url = ?, author = ? WHERE id = ?`;
@@ -230,7 +326,7 @@ app.put('/api/blogs/:id', (req, res) => {
     });
 });
 
-app.delete('/api/blogs/:id', (req, res) => {
+app.delete('/api/blogs/:id', requireAuth, (req, res) => {
     db.run("DELETE FROM blog_posts WHERE id = ?", [req.params.id], function (err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: "Blog post deleted" });
@@ -248,7 +344,7 @@ app.get('/api/ads', (req, res) => {
     });
 });
 
-app.post('/api/ads', (req, res) => {
+app.post('/api/ads', requireAuth, (req, res) => {
     const { title, image_url, link_url, position } = req.body;
     const sql = `INSERT INTO ads (title, image_url, link_url, position) VALUES (?, ?, ?, ?)`;
     db.run(sql, [title, image_url, link_url, position], function (err) {
@@ -257,7 +353,7 @@ app.post('/api/ads', (req, res) => {
     });
 });
 
-app.delete('/api/ads/:id', (req, res) => {
+app.delete('/api/ads/:id', requireAuth, (req, res) => {
     db.run("DELETE FROM ads WHERE id = ?", [req.params.id], function (err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: "Ad deleted" });
