@@ -1,0 +1,30 @@
+[
+  {
+    "category": "Starters",
+    "name": "Tomato Bruschetta with Olive",
+    "price": "4.00",
+    "description": "Fresh tomato, basil and olive oil on crisp bread.",
+    "image": "images/menu/double-tomato-bruschetta.jpg"
+  },
+  {
+    "category": "Starters",
+    "name": "Marinated Grilled Shrimp",
+    "price": "7.00",
+    "description": "Savory shrimp with lemon butter and herbs.",
+    "image": "images/menu/marinated-grilled-shrimp.jpg"
+  },
+  {
+    "category": "Mains",
+    "name": "Prime Rib with Garlic Sauce",
+    "price": "20.00",
+    "description": "Slow-roasted prime rib with classic garlic jus.",
+    "image": "images/menu/prime-rib-primer.jpg"
+  },
+  {
+    "category": "Mains",
+    "name": "Coconut Fried Chicken",
+    "price": "19.00",
+    "description": "Crispy chicken with coconut curry glaze.",
+    "image": "images/menu/coconut-fried-chicken.jpg"
+  }
+]

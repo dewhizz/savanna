@@ -40,16 +40,7 @@ function initializeDatabase() {
             is_available INTEGER DEFAULT 1
         )`);
 
-        // 3. Admin Users Table
-        db.run(`CREATE TABLE IF NOT EXISTS admin_users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            last_login DATETIME
-        )`);
-
-        // 4. Messages Table (Contact Form)
+        // 3. Messages Table (Contact Form)
         db.run(`CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -101,35 +92,6 @@ function seedData() {
             stmt.run("Mains", "Salmon Fillet", "Fresh salmon with lemon butter sauce", 22.00, "images/menu/main-2.jpg");
 
             stmt.finalize();
-        }
-    });
-
-    // Seed default admin user
-    db.get("SELECT count(*) as count FROM admin_users", (err, row) => {
-        if (err) return console.error(err.message);
-        if (row.count === 0) {
-            console.log("Creating default admin user...");
-            const bcrypt = require('bcryptjs');
-            const username = process.env.ADMIN_USERNAME || 'admin';
-            const password = process.env.ADMIN_PASSWORD || 'admin123';
-
-            bcrypt.hash(password, 10, (err, hash) => {
-                if (err) {
-                    console.error("Error hashing password:", err);
-                    return;
-                }
-                db.run(
-                    "INSERT INTO admin_users (username, password_hash) VALUES (?, ?)",
-                    [username, hash],
-                    (err) => {
-                        if (err) {
-                            console.error("Error creating admin user:", err);
-                        } else {
-                            console.log(`✓ Default admin user created: ${username}`);
-                        }
-                    }
-                );
-            });
         }
     });
 }

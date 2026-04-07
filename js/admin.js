@@ -3,7 +3,7 @@ $(document).ready(function () {
 
     function loadBookings() {
         $.ajax({
-            url: 'http://localhost:3000/api/bookings',
+            url: '/api/bookings',
             method: 'GET',
             success: function (response) {
                 const bookings = response.bookings;
@@ -69,7 +69,7 @@ $(document).ready(function () {
         if (!confirm(`Are you sure you want to mark this booking as ${newStatus}?`)) return;
 
         $.ajax({
-            url: `http://localhost:3000/api/bookings/${id}/status`,
+            url: `/api/bookings/${id}/status`,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify({ status: newStatus }),

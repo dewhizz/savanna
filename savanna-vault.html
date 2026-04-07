@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savannah Vault | Savannah Spice</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400;1,700&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap/css/bootstrap.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="css/fontawesome/css/font-awesome.min.css" type="text/css" media="all" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
+    <link rel="icon" href="images/icons/logo.jpg" sizes="32x32" />
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f7f3ee; }
+        .vault-wrapper { min-height: 100vh; padding: 40px 0; }
+        .vault-card { background: #ffffffee; border: 1px solid rgba(0,0,0,.08); border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.08); }
+        .vault-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+        .vault-title { font-size: 2.4rem; margin: 0; letter-spacing: .5px; }
+        .vault-panel { display: none; }
+        .vault-panel.active { display: block; }
+        .vault-lock-screen { max-width: 480px; margin: 0 auto; }
+        .vault-status { min-height: 26px; margin-top: 16px; }
+        .vault-box { border-radius: 16px; background: #fff; padding: 22px; margin-bottom: 24px; border: 1px solid rgba(0,0,0,.05); }
+        .vault-box h4 { margin-bottom: 18px; }
+        .vault-counter { font-size: 3rem; font-weight: 700; color: #b78f31; }
+        .vault-label { color: #666; margin-bottom: 10px; }
+        .table-small th, .table-small td { padding: .75rem .9rem; vertical-align: middle; }
+        .line-input { max-width: 300px; }
+        .link-soft { color: #495057; text-decoration: none; }
+        .link-soft:hover { text-decoration: underline; }
+        .hide-on-lock { display: none; }
+        .vault-footer-note { font-size: .95rem; color: #5c5c5c; }
+    </style>
+</head>
+<body>
+    <div class="container vault-wrapper">
+        <div class="vault-card p-4 p-md-5">
+            <div class="vault-header mb-4">
+                <div>
+                    <div class="badge bg-warning text-dark mb-2">Savannah Spice Vault</div>
+                    <h1 class="vault-title">Manager Command Center</h1>
+                    <p class="text-muted">Secure unified control for menu, reservations, and table availability.</p>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">Secret page. Do not share publicly.</small>
+                    <div><a class="link-soft" href="/the-vault">Vault URL</a></div>
+                </div>
+            </div>
+
+            <div class="vault-box vault-lock-screen" id="vault-lock-screen">
+                <h4>Vault access</h4>
+                <p>Enter the Manager Key to unlock the command center. The dashboard hides automatically if you leave it inactive.</p>
+                <div class="mb-3">
+                    <label class="form-label" for="vault-manager-key">Manager Key</label>
+                    <input id="vault-manager-key" type="password" class="form-control line-input" autocomplete="off" placeholder="Enter manager key">
+                </div>
+                <button id="vault-unlock-btn" class="btn btn-primary">Unlock Vault</button>
+                <div id="vault-lock-status" class="vault-status"></div>
+            </div>
+
+            <div id="vault-dashboard" class="vault-panel">
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-start mb-4">
+                    <div class="vault-box w-100">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <h4>Live Inventory Monitor</h4>
+                                <p class="mb-0 text-muted">Available tables are recalculated in real time based on confirmed bookings.</p>
+                            </div>
+                            <button id="vault-refresh-btn" class="btn btn-outline-secondary btn-sm">Refresh</button>
+                        </div>
+                        <div class="text-center py-4">
+                            <div class="vault-label">Available Tables</div>
+                            <div id="vault-available-tables" class="vault-counter">--</div>
+                            <div class="text-muted">Total tables: <span id="vault-total-tables">--</span></div>
+                        </div>
+                    </div>
+                    <div class="vault-box w-100">
+                        <h4>Session Status</h4>
+                        <p class="text-muted">The vault locks after inactivity.</p>
+                        <div class="mb-3"><strong>Last refresh:</strong> <span id="vault-last-refresh">Never</span></div>
+                        <div><strong>Inactive lock timer:</strong> <span id="vault-lock-timer">5:00</span></div>
+                        <button id="vault-lock-btn" class="btn btn-danger btn-sm mt-3">Lock Vault</button>
+                    </div>
+                </div>
+
+                <div class="vault-box">
+                    <h4>Reservation Logistics Desk</h4>
+                    <p class="text-muted">Confirm new bookings and send a WhatsApp confirmation directly.</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-small mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Guest</th>
+                                    <th>When</th>
+                                    <th>Guests</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vault-reservations-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="vault-box">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h4>Menu Control Panel</h4>
+                            <p class="text-muted mb-0">Edit menu items directly without opening the spreadsheet.</p>
+                        </div>
+                        <div>
+                            <a class="btn btn-outline-info btn-sm" href="https://imgur.com/upload" target="_blank" rel="noopener noreferrer">Upload image</a>
+                        </div>
+                    </div>
+                    <div id="vault-menu-list"></div>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <button id="vault-save-menu-btn" class="btn btn-success">Publish Menu Updates</button>
+                        <button id="vault-export-menu-btn" class="btn btn-outline-secondary">Export Menu JSON</button>
+                    </div>
+                </div>
+
+                <div class="vault-box">
+                    <h4>Settings</h4>
+                    <p class="text-muted">Set restaurant configuration values like total tables.</p>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" for="vault-setting-total-tables">Total tables</label>
+                            <input id="vault-setting-total-tables" type="number" class="form-control" min="1" value="20">
+                        </div>
+                        <div class="col-md-8 d-flex align-items-end">
+                            <button id="vault-save-settings-btn" class="btn btn-primary">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="vault-dashboard-status" class="vault-status"></div>
+            </div>
+
+            <div class="vault-footer-note mt-4 text-muted">
+                Note: This page is intentionally not linked from the public site. Use the secret URL only when needed.
+            </div>
+        </div>
+    </div>
+
+    <script src="js/jquery.js"></script>
+    <script src="js/jquery-migrate.min.js"></script>
+    <script src="css/bootstrap/js/popper.min.js"></script>
+    <script src="css/bootstrap/js/bootstrap.min.js"></script>
+    <script src="js/combined-management.js"></script>
+</body>
+</html>

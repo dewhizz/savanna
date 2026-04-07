@@ -2,7 +2,7 @@ jQuery(document).ready(function ($) {
     console.log("Loading menu items...");
 
     $.ajax({
-        url: 'http://localhost:3000/api/menu',
+        url: '/api/menu',
         method: 'GET',
         success: function (response) {
             console.log("Menu items loaded:", response.menu);
