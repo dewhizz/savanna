@@ -357,8 +357,37 @@ app.post('/api/bookings', (req, res) => {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Log the booking (since no database)
-    console.log('New booking received:', { name, email, phone, date: datepicker, time, guests: persons, message });
+    // Load current reservations
+    const reservations = loadReservationData();
+
+    // Generate new ID
+    const newId = reservations.length > 0 ? Math.max(...reservations.map(r => r.id)) + 1 : 1;
+
+    // Create new booking
+    const newBooking = {
+        id: newId,
+        name,
+        email,
+        phone,
+        date: datepicker,
+        time,
+        guests: parseInt(persons),
+        status: 'pending'
+    };
+
+    // Add to reservations
+    reservations.push(newBooking);
+
+    // Save to JSON
+    saveJsonData(RESERVATIONS_DATA_FILE, reservations);
+
+    // Sync to sheet if configured
+    if (SHEET_API_BASE_URL) {
+        writeSheetTab('reservations', reservations.map(normalizeReservation));
+    }
+
+    // Log the booking
+    console.log('New booking received and saved:', newBooking);
 
     // Send confirmation email
     if (transporter) {
